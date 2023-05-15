@@ -1,12 +1,30 @@
-apply plugin: 'maven-publish'
 
-publishing {
-    publications {
-        release(MavenPublication) {
-            from components.java
-            groupId 'com.github.liujingxing'
-            artifactId 'XmlClassGuard'
-            version "$plugin_version"
+apply plugin: 'maven-publish'
+afterEvaluate {
+    publishing {
+        publications {
+            plugin(MavenPublication) {
+                from components.java
+                groupId = 'com.joey.jiang'
+                artifactId = 'XmlClassGuard'
+                version = "$plugin_version"
+            }
+        }
+        repositories {
+            maven {
+                url = 'https://packages.aliyun.com/maven/repository/2164832-release-hq7NAh/'
+                credentials {
+                    username = '61b43fd1a96ac5d9b073a4d6'
+                    password = 'GXlIxXy)Zgh1'
+                }
+            }
+            maven {
+                url = 'https://packages.aliyun.com/maven/repository/2164832-snapshot-jJjl56/'
+                credentials {
+                    username = '61b43fd1a96ac5d9b073a4d6'
+                    password = 'GXlIxXy)Zgh1'
+                }
+            }
         }
     }
 }

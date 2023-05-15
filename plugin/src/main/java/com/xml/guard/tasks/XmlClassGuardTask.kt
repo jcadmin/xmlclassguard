@@ -38,6 +38,7 @@ open class XmlClassGuardTask @Inject constructor(
 
     @TaskAction
     fun execute() {
+        println("plugin local")
         val androidProjects = allDependencyAndroidProjects()
         //1、遍历res下的xml文件，找到自定义的类(View/Fragment/四大组件等)，并将混淆结果同步到xml文件内
         androidProjects.forEach { handleResDir(it) }
