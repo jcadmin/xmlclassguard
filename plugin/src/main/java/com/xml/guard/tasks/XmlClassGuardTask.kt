@@ -234,6 +234,7 @@ open class XmlClassGuardTask @Inject constructor(
                 }
             }
         }
+        replaceText = replaceText.replaceWords("import ${rawPath}", "import ${obfuscatePath}")
         return replaceText
     }
 }

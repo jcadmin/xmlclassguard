@@ -2,6 +2,7 @@ package com.ljx.example.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import com.ljx.example.fragment.TestFragment
 
 class TestFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
