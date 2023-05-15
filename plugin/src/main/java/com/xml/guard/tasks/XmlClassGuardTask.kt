@@ -49,8 +49,28 @@ open class XmlClassGuardTask @Inject constructor(
         if (classMapping.isNotEmpty()) {
             androidProjects.forEach { replaceJavaText(it, classMapping) }
         }
+        xmlData(project)
+
         //4、混淆映射写出到文件
         mapping.writeMappingToFile(mappingFile)
+    }
+
+    private fun xmlData(project: Project) {
+        val xmlDirs = project.resDirs().flatMapTo(ArrayList()) { dir ->
+            dir.listFiles { _, name ->
+                //过滤res目录下的layout目录
+                name.startsWith("layout")
+            }?.toList() ?: emptyList()
+        }
+//        xmlDirs.add(project.manifestFile())
+        project.files(xmlDirs).asFileTree.forEach { xmlFile ->
+            var xmlText = xmlFile.readText()
+            mapping.classMapping.forEach { (s, s2) ->
+                println("xmlFile :${xmlFile.name} replace s ${s} to${s2}")
+                xmlText = xmlText.replaceWords(s, s2)
+            }
+            xmlFile.writeText(xmlText)
+        }
     }
 
     //处理res目录
@@ -65,7 +85,6 @@ open class XmlClassGuardTask @Inject constructor(
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
             guardXml(project, xmlFile)
         }
-        println("classMapping ${Gson().toJson(mapping.classMapping)}")
     }
 
     private fun guardXml(project: Project, xmlFile: File) {
