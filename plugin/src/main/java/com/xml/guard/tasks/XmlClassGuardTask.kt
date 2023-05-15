@@ -69,15 +69,26 @@ open class XmlClassGuardTask @Inject constructor(
     private fun guardXml(project: Project, xmlFile: File) {
         var xmlText = xmlFile.readText()
         val classPaths = mutableListOf<String>()
+        val navigationFragmentPaths = mutableListOf<String>()
         val parentName = xmlFile.parentFile.name
         var packageName: String? = null
         when {
             parentName.startsWith("navigation") -> {
                 findClassByNavigationXml(xmlText, classPaths)
+                navigationFragmentPaths.addAll(classPaths)
+                val androidProjects = allDependencyAndroidProjects()
+                //2、混淆文件名及文件路径，返回本次混淆的类
+                val classMapping = mapping.obfuscateAllClass(project)
+                //3、替换Java/kotlin文件里引用到的类
+                if (classMapping.isNotEmpty()) {
+                    androidProjects.forEach { replaceNavigation(it, classMapping) }
+                }
             }
+
             parentName.startsWith("layout") -> {
                 findClassByLayoutXml(xmlText, classPaths)
             }
+
             xmlFile.name == "AndroidManifest.xml" -> {
                 val tempPackageName = project.findPackage()
                 packageName = tempPackageName
@@ -93,7 +104,8 @@ open class XmlClassGuardTask @Inject constructor(
             val obfuscatePath = mapping.obfuscatePath(classPath)
             xmlText = xmlText.replaceWords(classPath, obfuscatePath)
             if (packageName != null && classPath.startsWith(packageName)) {
-                xmlText = xmlText.replaceWords(classPath.substring(packageName.length), obfuscatePath)
+                xmlText =
+                    xmlText.replaceWords(classPath.substring(packageName.length), obfuscatePath)
             }
 
             // 内部类没有混淆，删除
@@ -104,6 +116,19 @@ open class XmlClassGuardTask @Inject constructor(
         xmlFile.writeText(xmlText)
     }
 
+    private fun replaceNavigation(
+        project: Project, mapping: Map<String, String>
+    ) {
+        val javaDirs = project.javaDirs()
+        //遍历所有Java\Kt文件，替换混淆后的类的引用，import及new对象的地方
+        project.files(javaDirs).asFileTree.forEach { javaFile ->
+            var replaceText = javaFile.readText()
+            mapping.forEach {
+                replaceText = replaceNavigation(javaFile, replaceText, it.key, it.value)
+            }
+            javaFile.writeText(replaceText)
+        }
+    }
 
     private fun replaceJavaText(project: Project, mapping: Map<String, String>) {
         val javaDirs = project.javaDirs()
@@ -115,6 +140,26 @@ open class XmlClassGuardTask @Inject constructor(
             }
             javaFile.writeText(replaceText)
         }
+    }
+
+    private fun replaceNavigation(
+        rawFile: File, rawText: String, rawPath: String, obfuscatePath: String
+    ): String {
+        val rawIndex = rawPath.lastIndexOf(".")
+        val rawPackage = rawPath.substring(0, rawIndex)
+        val rawName = rawPath.substring(rawIndex + 1)
+        val rawDirections = "${rawName}Directions"
+
+        val obfuscateIndex = obfuscatePath.lastIndexOf(".")
+        val obfuscatePackage = obfuscatePath.substring(0, obfuscateIndex)
+        val obfuscateName = obfuscatePath.substring(obfuscateIndex + 1)
+        val obfuscateDirections = "${obfuscateName}Directions"
+
+        var replaceText = rawText
+
+        replaceText = replaceText.replaceWords(rawDirections, obfuscateDirections)  //替换{包名+类名}
+
+        return replaceText
     }
 
     private fun replaceText(
@@ -133,18 +178,20 @@ open class XmlClassGuardTask @Inject constructor(
 
         var replaceText = rawText
         when {
-            rawFile.absolutePath.removeSuffix().endsWith(obfuscatePath.replace(".", File.separator)) -> {
+            rawFile.absolutePath.removeSuffix()
+                .endsWith(obfuscatePath.replace(".", File.separator)) -> {
                 //对于自己，替换package语句及类名即可
-                replaceText = replaceText
-                    .replaceWords("package $rawPackage", "package $obfuscatePackage")
-                    .replaceWords(rawPath, obfuscatePath)
-                    .replaceWords(rawName, obfuscateName)
+                replaceText =
+                    replaceText.replaceWords("package $rawPackage", "package $obfuscatePackage")
+                        .replaceWords(rawPath, obfuscatePath).replaceWords(rawName, obfuscateName)
             }
+
             rawFile.parent.endsWith(obfuscatePackage.replace(".", File.separator)) -> {
                 //同一包下的类，原则上替换类名即可，但考虑到会依赖同包下类的内部类，所以也需要替换包名+类名
                 replaceText = replaceText.replaceWords(rawPath, obfuscatePath)  //替换{包名+类名}
                     .replaceWords(rawName, obfuscateName)
             }
+
             else -> {
                 replaceText = replaceText.replaceWords(rawPath, obfuscatePath)  //替换{包名+类名}
                     .replaceWords("$rawPackage.*", "$obfuscatePackage.*")

@@ -1,6 +1,7 @@
 package com.xml.guard.utils
 
 import com.android.build.gradle.BaseExtension
+import com.google.gson.Gson
 import groovy.util.Node
 import groovy.util.NodeList
 import groovy.xml.XmlParser
@@ -118,6 +119,7 @@ fun findClassByNavigationXml(text: String, classPaths: MutableList<String>) {
         if ("fragment" == childName) {
             val classPath = childNode.attribute("android:name").toString()
             classPaths.add(classPath)
+            println("navigation fragment childNote:${Gson().toJson(childNode.attributes())} childName:${childName} ,path:${classPath}")
         }
     }
 }
