@@ -178,15 +178,18 @@ open class XmlClassGuardTask @Inject constructor(
         val rawPackage = rawPath.substring(0, rawIndex)
         val rawName = rawPath.substring(rawIndex + 1)
         val rawDirections = "${rawName}Directions"
+        val rawArgs = "${rawName}Args"
 
         val obfuscateIndex = obfuscatePath.lastIndexOf(".")
         val obfuscatePackage = obfuscatePath.substring(0, obfuscateIndex)
         val obfuscateName = obfuscatePath.substring(obfuscateIndex + 1)
         val obfuscateDirections = "${obfuscateName}Directions"
+        val obfuscateArgs = "${obfuscateName}Args"
 
         var replaceText = rawText
         println("rawPath:${rawFile.absolutePath} replace ${rawDirections} to ${obfuscateDirections}")
-        replaceText = replaceText.replaceWords(rawDirections, obfuscateDirections)  //替换{包名+类名}
+        replaceText = replaceText.replaceWords(rawDirections, obfuscateDirections)
+            .replaceWords(rawArgs, obfuscateArgs)//替换{包名+类名}
 
         return replaceText
     }

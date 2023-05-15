@@ -8,6 +8,11 @@
         android:id="@+id/TestFragment"
         android:name="com.ljx.example.fragment.TestFragment"
         android:label="SplashFragment">
+        <argument
+            android:name="user"
+            android:defaultValue="@null"
+            app:argType="com.ljx.example.AppHolder"
+            app:nullable="true" />
         <action
             android:id="@+id/gotoHome"
             app:destination="@id/TestFragment"

@@ -7,5 +7,6 @@ class TestFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         TestFragmentDirections.gotoHome()
+//        TestFragmentArgs
     }
 }
