@@ -1,5 +1,6 @@
 package com.xml.guard.tasks
 
+import com.google.gson.Gson
 import com.xml.guard.entensions.GuardExtension
 import com.xml.guard.model.MappingParser
 import com.xml.guard.utils.allDependencyAndroidProjects
@@ -64,6 +65,7 @@ open class XmlClassGuardTask @Inject constructor(
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
             guardXml(project, xmlFile)
         }
+        println("classMapping ${Gson().toJson(mapping.classMapping)}")
     }
 
     private fun guardXml(project: Project, xmlFile: File) {
@@ -76,13 +78,7 @@ open class XmlClassGuardTask @Inject constructor(
             parentName.startsWith("navigation") -> {
                 findClassByNavigationXml(xmlText, classPaths)
                 navigationFragmentPaths.addAll(classPaths)
-                val androidProjects = allDependencyAndroidProjects()
-                //2、混淆文件名及文件路径，返回本次混淆的类
-                val classMapping = mapping.obfuscateAllClass(project)
-                //3、替换Java/kotlin文件里引用到的类
-                if (classMapping.isNotEmpty()) {
-                    androidProjects.forEach { replaceNavigation(it, classMapping) }
-                }
+
             }
 
             parentName.startsWith("layout") -> {
@@ -113,6 +109,18 @@ open class XmlClassGuardTask @Inject constructor(
                 mapping.classMapping.remove(classPath)
             }
         }
+        var navigationMapping = hashMapOf<String, String>()
+        navigationFragmentPaths.forEach {
+            mapping.classMapping[it]?.let { obPath ->
+                navigationMapping[it] = obPath
+            }
+        }
+        val androidProjects = allDependencyAndroidProjects()
+        //3、替换Java/kotlin文件里引用到的类
+        if (navigationMapping.isNotEmpty()) {
+            androidProjects.forEach { replaceNavigation(it, navigationMapping) }
+        }
+
         xmlFile.writeText(xmlText)
     }
 
@@ -124,7 +132,9 @@ open class XmlClassGuardTask @Inject constructor(
         project.files(javaDirs).asFileTree.forEach { javaFile ->
             var replaceText = javaFile.readText()
             mapping.forEach {
-                replaceText = replaceNavigation(javaFile, replaceText, it.key, it.value)
+                replaceText = replaceNavigation(
+                    javaFile, replaceText, it.key, it.value
+                )
             }
             javaFile.writeText(replaceText)
         }
@@ -156,7 +166,7 @@ open class XmlClassGuardTask @Inject constructor(
         val obfuscateDirections = "${obfuscateName}Directions"
 
         var replaceText = rawText
-
+        println("rawPath:${rawFile.absolutePath} replace ${rawDirections} to ${obfuscateDirections}")
         replaceText = replaceText.replaceWords(rawDirections, obfuscateDirections)  //替换{包名+类名}
 
         return replaceText
