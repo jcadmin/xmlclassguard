@@ -119,7 +119,6 @@ fun findClassByNavigationXml(text: String, classPaths: MutableList<String>) {
         if ("fragment" == childName) {
             val classPath = childNode.attribute("android:name").toString()
             classPaths.add(classPath)
-            println("navigation fragment childNote:${Gson().toJson(childNode.attributes())} childName:${childName} ,path:${classPath}")
         }
     }
 }

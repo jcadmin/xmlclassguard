@@ -39,7 +39,6 @@ open class XmlClassGuardTask @Inject constructor(
 
     @TaskAction
     fun execute() {
-        println("plugin local")
         val androidProjects = allDependencyAndroidProjects()
         //1、遍历res下的xml文件，找到自定义的类(View/Fragment/四大组件等)，并将混淆结果同步到xml文件内
         androidProjects.forEach { handleResDir(it) }
@@ -62,11 +61,10 @@ open class XmlClassGuardTask @Inject constructor(
                 name.startsWith("layout")
             }?.toList() ?: emptyList()
         }
-//        xmlDirs.add(project.manifestFile())
+        xmlDirs.add(project.manifestFile())
         project.files(xmlDirs).asFileTree.forEach { xmlFile ->
             var xmlText = xmlFile.readText()
             mapping.classMapping.forEach { (s, s2) ->
-                println("xmlFile :${xmlFile.name} replace s ${s} to${s2}")
                 xmlText = xmlText.replaceWords(s, s2)
             }
             xmlFile.writeText(xmlText)
@@ -97,17 +95,19 @@ open class XmlClassGuardTask @Inject constructor(
             parentName.startsWith("navigation") -> {
                 findClassByNavigationXml(xmlText, classPaths)
                 navigationFragmentPaths.addAll(classPaths)
-
+                println("navigation ${Gson().toJson(classPaths)}")
             }
 
             parentName.startsWith("layout") -> {
                 findClassByLayoutXml(xmlText, classPaths)
+                println("layout ${Gson().toJson(classPaths)}")
             }
 
             xmlFile.name == "AndroidManifest.xml" -> {
                 val tempPackageName = project.findPackage()
                 packageName = tempPackageName
                 findClassByManifest(xmlText, classPaths, tempPackageName)
+                println("AndroidManifest ${Gson().toJson(classPaths)}")
             }
         }
         for (classPath in classPaths) {
@@ -187,7 +187,6 @@ open class XmlClassGuardTask @Inject constructor(
         val obfuscateArgs = "${obfuscateName}Args"
 
         var replaceText = rawText
-        println("rawPath:${rawFile.absolutePath} replace ${rawDirections} to ${obfuscateDirections}")
         replaceText = replaceText.replaceWords(rawDirections, obfuscateDirections)
             .replaceWords(rawArgs, obfuscateArgs)//替换{包名+类名}
 
