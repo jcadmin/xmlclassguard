@@ -1,7 +1,12 @@
 dir mapping:
 	com.ljx.example -> e
 	com.ljx.example.activity -> dh
+	com.ljx.example.fragment -> di
 
 class mapping:
 	com.ljx.example.AppHolder -> e.B
 	com.ljx.example.activity.MainActivity -> dh.C
+	com.ljx.example.fragment.TestFragment -> di.D
+	com.ljx.example.TestInnerClass -> e.E
+	com.ljx.example.activity.LoginActivity -> dh.F
+	com.ljx.example.fragment.TestViewModel -> di.G

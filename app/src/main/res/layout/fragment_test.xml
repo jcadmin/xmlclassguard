@@ -5,7 +5,7 @@
 
         <variable
             name="vm"
-            type="com.ljx.example.fragment.TestViewModel" />
+            type="di.G" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

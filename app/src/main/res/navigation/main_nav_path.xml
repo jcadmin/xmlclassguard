@@ -6,7 +6,7 @@
     app:startDestination="@id/TestFragment">
     <fragment
         android:id="@+id/TestFragment"
-        android:name="com.ljx.example.fragment.TestFragment"
+        android:name="di.D"
         android:label="SplashFragment">
         <argument
             android:name="user"

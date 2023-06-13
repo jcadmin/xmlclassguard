@@ -4,6 +4,8 @@ import com.android.build.gradle.AppExtension
 import com.xml.guard.entensions.GuardExtension
 import com.xml.guard.model.aabResGuard
 import com.xml.guard.model.andResGuard
+import com.xml.guard.tasks.CheckStringTask
+import com.xml.guard.tasks.EmojiGuardTask
 import com.xml.guard.tasks.FindConstraintReferencedIdsTask
 import com.xml.guard.tasks.MoveDirTask
 import com.xml.guard.tasks.PackageChangeTask
@@ -27,6 +29,8 @@ class XmlClassGuardPlugin : Plugin<Project> {
         project.tasks.create("xmlClassGuard", XmlClassGuardTask::class.java, guardExtension)
         project.tasks.create("packageChange", PackageChangeTask::class.java, guardExtension)
         project.tasks.create("moveDir", MoveDirTask::class.java, guardExtension)
+        project.tasks.create("checkString", CheckStringTask::class.java, guardExtension)
+        project.tasks.create("emojiGuard", EmojiGuardTask::class.java, guardExtension)
 
         val android = project.extensions.getByName("android") as AppExtension
         project.afterEvaluate {
