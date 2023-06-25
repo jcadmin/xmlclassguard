@@ -17,4 +17,6 @@
 
     <!--    "@raw/loading"-->
     <!--    "@raw/loading_live"-->
+<!--    app:lottie_fileName="loading.json"-->
+    <!--    app:lottie_fileName="loading_live.json"-->
 </androidx.constraintlayout.widget.ConstraintLayout>

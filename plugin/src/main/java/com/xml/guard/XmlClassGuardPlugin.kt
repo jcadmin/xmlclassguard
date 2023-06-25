@@ -11,6 +11,7 @@ import com.xml.guard.tasks.FindConstraintReferencedIdsTask
 import com.xml.guard.tasks.MoveDirTask
 import com.xml.guard.tasks.PackageChangeTask
 import com.xml.guard.tasks.RawGuardTask
+import com.xml.guard.tasks.RawMoveToAssetsTask
 import com.xml.guard.tasks.XmlClassGuardTask
 import com.xml.guard.utils.AgpVersion
 import org.gradle.api.GradleException
@@ -35,6 +36,7 @@ class XmlClassGuardPlugin : Plugin<Project> {
         project.tasks.create("checkString", CheckStringTask::class.java, guardExtension)
         project.tasks.create("emojiGuard", EmojiGuardTask::class.java, guardExtension)
         project.tasks.create("rawGuard", RawGuardTask::class.java, guardExtension)
+        project.tasks.create("rawMoveToAssets", RawMoveToAssetsTask::class.java, guardExtension)
 
         val android = project.extensions.getByName("android") as AppExtension
         project.afterEvaluate {
