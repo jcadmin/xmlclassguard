@@ -15,12 +15,29 @@ android {
         applicationId "com.ljx.example"
         minSdk 21
         targetSdk 31
-        versionCode 1
+        versionCode project.property('versionCode') as int ?: 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            // 获取当前的 versionCode
+            def currentVersionCode = variant.mergedFlavor.versionCode
+
+            // 计算新的 versionCode
+            def newVersionCode = currentVersionCode + 1
+
+            // 设置新的 versionCodeOverride
+            variant.outputs.all {
+                versionCodeOverride newVersionCode
+            }
+
+            // 更新本地 Gradle 文件
+            updateGradleVersionCode(newVersionCode)
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -38,6 +55,19 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
+}
+
+// 更新本地 Gradle 文件中的 versionCode
+def updateGradleVersionCode(newVersionCode) {
+    def gradlePropertiesFile = file('gradle.properties')
+    Properties properties = new Properties()
+    properties.load(new FileInputStream(gradlePropertiesFile))
+
+    // 设置新的 versionCode
+    properties.setProperty('versionCode', newVersionCode.toString())
+
+    // 保存更新后的 properties 对象到文件中
+    properties.store(gradlePropertiesFile.newWriter(), null)
 }
 
 dependencies {

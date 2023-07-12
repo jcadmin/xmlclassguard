@@ -1,10 +1,12 @@
 package com.xml.guard
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import com.google.gson.Gson
 import com.xml.guard.entensions.GuardExtension
 import com.xml.guard.model.aabResGuard
 import com.xml.guard.model.andResGuard
+import com.xml.guard.tasks.AutoIncrementVersionCodePlugin
 import com.xml.guard.tasks.CheckStringTask
 import com.xml.guard.tasks.EmojiGuardTask
 import com.xml.guard.tasks.FindConstraintReferencedIdsTask
@@ -37,6 +39,9 @@ class XmlClassGuardPlugin : Plugin<Project> {
         project.tasks.create("emojiGuard", EmojiGuardTask::class.java, guardExtension)
         project.tasks.create("rawGuard", RawGuardTask::class.java, guardExtension)
         project.tasks.create("rawMoveToAssets", RawMoveToAssetsTask::class.java, guardExtension)
+//        project.tasks.create(
+//            "AutoIncrementVersionCode", AutoIncrementVersionCodePlugin::class.java,
+//        )
 
         val android = project.extensions.getByName("android") as AppExtension
         project.afterEvaluate {
@@ -48,43 +53,52 @@ class XmlClassGuardPlugin : Plugin<Project> {
                 if (guardExtension.findAabConstraintReferencedIds) {
                     createAabFindConstraintReferencedIds(project, variantName)
                 }
+//                createAutoIncrementVersionCode(project, variantName)
+            }
+        }
+    }
+
+    private fun createAutoIncrementVersionCode(project: Project, variantName: String) {
+
+        project.plugins.withId("com.android.application") {
+            val androidExtension = project.extensions.getByType(BaseAppModuleExtension::class.java)
+            project.afterEvaluate {
+                val currentVersionCode = androidExtension.defaultConfig.versionCode ?: 1
+                println("AutoIncrementVersionCode :${currentVersionCode} +1 = ${currentVersionCode + 1}")
+                androidExtension.defaultConfig.versionCode = currentVersionCode + 1
             }
         }
     }
 
     private fun createAndFindConstraintReferencedIds(
-        project: Project,
-        variantName: String
+        project: Project, variantName: String
     ) {
         val andResGuardTaskName = "resguard$variantName"
         val andResGuardTask = project.tasks.findByName(andResGuardTaskName)
             ?: throw GradleException("AndResGuard plugin required")
         val findConstraintReferencedIdsTaskName = "andFindConstraintReferencedIds"
         val findConstraintReferencedIdsTask =
-            project.tasks.findByName(findConstraintReferencedIdsTaskName)
-                ?: project.tasks.create(
-                    findConstraintReferencedIdsTaskName,
-                    FindConstraintReferencedIdsTask::class.java,
-                    andResGuard
-                )
+            project.tasks.findByName(findConstraintReferencedIdsTaskName) ?: project.tasks.create(
+                findConstraintReferencedIdsTaskName,
+                FindConstraintReferencedIdsTask::class.java,
+                andResGuard
+            )
         andResGuardTask.dependsOn(findConstraintReferencedIdsTask)
     }
 
     private fun createAabFindConstraintReferencedIds(
-        project: Project,
-        variantName: String
+        project: Project, variantName: String
     ) {
         val aabResGuardTaskName = "aabresguard$variantName"
         val aabResGuardTask = project.tasks.findByName(aabResGuardTaskName)
             ?: throw GradleException("AabResGuard plugin required")
         val findConstraintReferencedIdsTaskName = "aabFindConstraintReferencedIds"
         val findConstraintReferencedIdsTask =
-            project.tasks.findByName(findConstraintReferencedIdsTaskName)
-                ?: project.tasks.create(
-                    findConstraintReferencedIdsTaskName,
-                    FindConstraintReferencedIdsTask::class.java,
-                    aabResGuard
-                )
+            project.tasks.findByName(findConstraintReferencedIdsTaskName) ?: project.tasks.create(
+                findConstraintReferencedIdsTaskName,
+                FindConstraintReferencedIdsTask::class.java,
+                aabResGuard
+            )
         aabResGuardTask.dependsOn(findConstraintReferencedIdsTask)
     }
 
